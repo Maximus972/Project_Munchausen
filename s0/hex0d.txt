@@ -1,0 +1,42 @@
+Открытие файла входного
+lw a1, 8(sp)
+addi a0, zero, -100
+addi a2, zero, 0
+addi a3, zero, 0
+addi a7, zero, 56
+ecall
+
+Сохраняем дескриптор файла в s0
+addi s0, a0, 0
+
+Открываем файл выходного
+lw a1, 12(sp)
+addi a0, zero, -100
+addi a2, zero, 577
+addi a3, zero, 420
+addi a7, zero, 56
+ecall
+
+Сохраняем дескриптор файла выходного в s1
+addi s1, a0, 0
+
+Получаю дескриптор из s0 и читаю байт из входного файла, если файл закончился, то exit
+addi a0, s0, 0
+lui a1, 24
+addi a2, zero, 1
+addi a7, zero, 63
+ecall
+beq a0, zero, 28
+
+Получаю дескриптор выходного файла из s1 и записываю байт в выходной файл, возвращаюсь снова к чтению файла входного
+addi a0, zero, s1
+lui a1, 24
+addi a2, zero, 1
+addi a7, zero, 64
+ecall
+beq zero, zero, -44
+
+Завершение программы
+addi a0, zero, 0
+addi a7, zero, 93
+ecall

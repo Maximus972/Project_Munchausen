@@ -1,0 +1,118 @@
+льная инициализация регистров
+addi s2, zero, 0
+addi s3, zero, 0
+addi t2, zero, 0
+
+Открываем входной и выходной файлы, записываем их дескрипторы. Читаем байт из входного файла.
+
+lw a1, 8(sp)
+addi a0, zero, -100
+addi a2, zero, 0
+addi a3, zero, 0
+addi a7, zero, 56
+ecall
+
+addi s0, a0, 0
+
+lw a1, 12(sp)
+addi a0, zero, -100
+addi a2, zero, 577
+addi a3, zero, 420
+addi a7, zero, 56
+ecall
+
+addi s1, a0, 0
+
+; Чтение байта следующего
+addi a0, s0, 0
+lui a1, 24
+addi a2, zero, 1
+addi a7, zero, 63
+ecall
+beq a0, zero, exit
+
+Прочитанный байт мы обрабатываем. Проверка что за символ.
+lb t0, 0(a1)
+
+Если # или ; то переходим в режим пропуска символов, до тех пор, пока не встретим символ \n. Когда встречаем символ \n, переключаемся обратно в старый режим.
+addi t1, zero, 10
+beq t0, t1 #;reset_flag
+
+addi t1, zero, 59
+beq t0, t1, #;set_flag
+
+addi t1, zero, 35
+beq  t0, t1, set_flag
+
+; Это не \n и не ;, значит обрабатываем в зависимости от флага ;
+addi t3, zero, 1
+beq t2, t3, Чтение байта флаг ; равен 1 значит прыгаем в самое начало обратно
+
+addi t1, zero, 48
+blt t0, t1, Чтение байта
+
+;отсекли ; со всей строкой, отсекли меньшее чем '0'
+addi t1, zero, 58
+blt t0, t1, digit_handler
+
+; Проверка на 'A' - 'F'
+addi t1, zero, 65
+blt t0, t1, Чтение файла
+
+addi t1, zero, 71
+blt t0, t1, A-F handler
+
+; Проверка на 'a' - 'f'
+addi t1, zero, 97
+blt t0, t1, Чтение файла
+
+addi t1, zero, 103
+blt t0, t1, a-f handler
+
+beq zero, zero, Чтение файла
+
+;digit_handler '0' - '9'
+addi t0, t0, -48
+beq zero, zero, write_byte
+
+;A-F handler
+addi t0, t0, -55
+beq zero, zero, write_byte
+
+;a-f handler
+addi t0, t0, -87
+beq zero, zero, write_byte
+
+#;reset_flag
+addi t2, zero, 0
+beq zero, zero, Чтение байта
+
+#;set_flag
+addi t2, zero, 1
+beq zero, zero, Чтение байта
+
+;write_byte
+addi t3, zero, 1
+beq s2, t3, s2_handler
+mv s3, t0
+addi s2, zero, 1
+beq zero, zero, Чтение файла
+
+;s2_handler
+slli s3, s3, 4
+add t0, s3, t0
+addi s2, zero, 0
+beq zero, zero, write_byte_final
+
+;write_byte_final
+mv   a0, s1
+lui  a1, 24
+sb   t0, 0(a1)      ← вот сюда
+addi a2, zero, 1
+addi a7, zero, 64
+ecall
+
+;exit
+addi a0, zero, 0
+addi a7, zero, 93
+ecall
