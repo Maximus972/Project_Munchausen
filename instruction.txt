@@ -1,0 +1,9 @@
+Запуск кода с clang для проверки
+
+clang --target=riscv32 -march=rv32i -mabi=ilp32 -mno-relax -c prog.s -o prog.o
+ld.lld -Ttext=0x10074 -o prog prog.o
+qemu-riscv32 ./prog
+
+Как забрать байты для .hex:
+
+llvm-objdump -s -j .text prog

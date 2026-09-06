@@ -1,0 +1,18 @@
+.global _start
+
+.section .rodata
+msg:
+    .string "Hello RiscV!\n"
+
+.section .text
+_start:
+    addi a0, zero, 1
+    lui a1, 16
+    addi a1, a1, 344
+    addi a2, zero, 16
+    addi a7, zero, 64
+    ecall
+
+    addi a0, zero, 0
+    addi a7, zero, 93
+    ecall
