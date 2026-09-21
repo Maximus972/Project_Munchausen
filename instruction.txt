@@ -7,3 +7,10 @@ qemu-riscv32 ./prog
 Как забрать байты для .hex:
 
 llvm-objdump -s -j .text prog
+
+На ноутбуке:
+
+clang --target=riscv32 -march=rv32i -mabi=ilp32 -mno-relax -x assembler -c hex2.riscv -o hex2.o
+ld.lld -Ttext=0x10074 -o hex2 hex2.o ; надо только проверить, верный ли адрес указан в -Ttext
+
+qemu-riscv32 ./hex2 Запуск скомпилированного файла
