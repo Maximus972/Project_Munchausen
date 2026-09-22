@@ -30,38 +30,6 @@
 #
 #   Запись таблицы: [0] смещение имени в пуле, [4] значение, [8..15] резерв
 
-
-.section .bss
-# --- БАЗА 0x18000 (lui a1, 24) ---
-.org 0x18000
-buf_read:
-    .space 1           # Буфер чтения (1 байт)
-
-.org 0x18100
-buf_name:
-    .space 16          # Буфер имени (16 байт)
-
-# --- БАЗА 0x1A000 (lui a1, 26) ---
-.org 0x1A000
-label_table:
-    .space 8192        # Таблица меток (8 КБ, 512 записей по 16 байт)
-
-# --- БАЗА 0x1C000 (lui a1, 28) ---
-.org 0x1C000
-buf_out:
-    .space 16384       # Выходной буфер (16 КБ)
-
-.section .data
-
-.align 4
-
-.equ label_name, 0
-.equ label_pos, 12
-.equ label_size, 16
-
-name_array:
-    .space label_size * 16
-
 .global _start
 .section .text
 
@@ -212,6 +180,8 @@ emit_byte:
     beq zero, zero, read_byte
 # прочитать имя после : ~ @ &  в буфер имени
 read_name:
+    addi a0, s0, 0
+    lui a1, 24
 
 # найти имя в таблице; вернуть значение или "не найдено"
 lookup:
