@@ -101,7 +101,7 @@ _start:
 
     addi s1, a0, 0                      # Дескриптор выходного файла помещаем в s1
     beq zero, zero, read_byte
-    ## beq zero, zero, exit_ok
+
 # ============================================================
 #  ПРОХОД 1: собрать таблицу меток
 # ============================================================
@@ -136,19 +136,74 @@ read_byte:
     addi a2, zero, 1
     addi a7, zero, 63
     ecall
+    lbu t0, 0(a1)
 
     blt a0, zero, exit_err
     beq a0, zero, flush
-    beq zero, zero, emit_byte
+    beq zero, zero, char_handler
+    ## beq zero, zero, emit_byte
 
 # t0 — hex-цифра, вернуть значение 0..15
-hex_digit:
+char_handler:
+    addi t1, zero, 10
+    beq t0, t1, reset_flag
+    addi t1, zero, 59
+    beq t0, t1, set_flag
+    addi t1, zero, 35
+    beq t0, t1, set_flag
+
+    addi t3, zero, 1
+    beq t2, t3, read_byte
+
+    addi t1, zero, 48
+    blt t0, t1, read_byte
+    addi t1, zero, 58
+    blt t0, t1, digit_handler
+    addi t1, zero, 65
+    blt t0, t1, read_byte
+    addi t1, zero, 71
+    blt t0, t1, AF_handler
+    addi t1, zero, 97
+    blt t0, t1, read_byte
+    addi t1, zero, 103
+    blt t0, t1, af_handler
+    beq zero, zero, read_byte
+
+digit_handler:
+    addi t0, t0, -48
+    beq zero, zero, write_byte
+
+AF_handler:
+    addi t0, t0, -55
+    beq zero, zero, write_byte
+
+af_handler:
+    addi t0, t0, -87
+    beq zero, zero, write_byte
+
+reset_flag:
+    addi t2, zero, 0
+    beq zero, zero, read_byte
+
+set_flag:
+    addi t2, zero, 1
+    beq zero, zero, read_byte
+
+write_byte:
+    addi t3, zero, 1
+    beq s2, t3, s2_handler
+    addi s3, t0, 0
+    addi s2, zero, 1
+    beq zero, zero, read_byte
+
+s2_handler:
+    slli s3, s3, 4
+    add t0, s3, t0
+    addi s2, zero, 0
+    beq zero, zero, emit_byte
 
 # записать байт t0 в выходной буфер, s4 += 1
 emit_byte:
-    lui a1, 24
-    lbu t0, 0(a1)
-
     lui a1, 28
     add a1, a1, s4
     sb t0, 0(a1)
