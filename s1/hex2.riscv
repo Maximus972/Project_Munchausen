@@ -100,6 +100,7 @@ _start:
     ecall                               # Открываем выходной файл, дескриптор файла в a0
 
     addi s1, a0, 0                      # Дескриптор выходного файла помещаем в s1
+    beq zero, zero, read_byte
     ## beq zero, zero, exit_ok
 # ============================================================
 #  ПРОХОД 1: собрать таблицу меток
@@ -117,23 +118,34 @@ pass2:
 #  Запись выходного буфера в файл одним write
 # ============================================================
 flush:
+    addi a7, zero, 64
+    addi a0, s1, 0
+    lui a1, 28
+    addi a2, s4, 0
+    ecall
 
-
+    beq zero, zero, exit_ok
 # ------------------------------------------------------------
 #  Подпрограммы
 # ------------------------------------------------------------
 
 # читает один байт из s0 в t0; при EOF уходит на eof
 read_byte:
-    addi a0, s0, 0
+    addi a0, s0, 0                      # Чтение байта в буффер чтения 0x18000
     lui a1, 24
     addi a2, zero, 1
     addi a7, zero, 63
     ecall
 
     blt a0, zero, exit_err
-    beq a0, zero, exit_ok
-    ## beq zero, zero, emit_byte
+    beq a0, zero, flush
+    beq zero, zero, emit_byte
+
+# t0 — hex-цифра, вернуть значение 0..15
+hex_digit:
+
+# записать байт t0 в выходной буфер, s4 += 1
+emit_byte:
     lui a1, 24
     lbu t0, 0(a1)
 
@@ -143,12 +155,6 @@ read_byte:
 
     addi s4, s4, 1
     beq zero, zero, read_byte
-# t0 — hex-цифра, вернуть значение 0..15
-hex_digit:
-
-# записать байт t0 в выходной буфер, s4 += 1
-emit_byte:
-
 # прочитать имя после : ~ @ &  в буфер имени
 read_name:
 
@@ -165,12 +171,6 @@ patch_j:
 patch_b:
 
 exit_ok:
-    addi a7, zero, 64
-    addi a0, s1, 0
-    lui a1, 28
-    addi a2, s4, 0
-    ecall
-
     addi a0, zero, 0
     addi a7, zero, 93
     ecall
